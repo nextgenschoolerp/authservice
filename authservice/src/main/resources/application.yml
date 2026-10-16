@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: authservice
+  datasource:
+    url: jdbc:postgresql://localhost:5432/authservice
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+server:
+  port: ${SERVER_PORT:8082}
+
+jwt:
+  secret: ${JWT_SECRET:5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437}
+  expiration: ${JWT_EXPIRATION:1800000}
+
+management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+    propagation:
+      consume: [w3c, b3]
+      produce: [w3c, b3]
+
+logging:
+  level:
+    root: info
+    com.kvs: debug
+    org.springframework.security: warn

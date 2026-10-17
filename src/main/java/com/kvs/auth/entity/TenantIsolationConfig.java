@@ -39,4 +39,24 @@ public class TenantIsolationConfig extends BaseAuditEntity {
     /** Whether row-level security is enabled for this tenant */
     @Column(name = "row_level_security_enabled", nullable = false)
     private boolean rowLevelSecurityEnabled = true;
+
+    /** Custom domain name configured for HTTPS routing */
+    @Column(name = "domain_name", length = 255)
+    private String domainName;
+
+    /** Whether SSL/TLS HTTPS encryption is active */
+    @Column(name = "ssl_enabled", nullable = false)
+    private boolean sslEnabled = true;
+
+    /** Whether automatic SSL certificate renewal is enabled */
+    @Column(name = "ssl_auto_renew_enabled", nullable = false)
+    private boolean sslAutoRenewEnabled = true;
+
+    /** TLS protocol version (e.g. TLSv1.3) */
+    @Column(name = "tls_version", length = 20)
+    private String tlsVersion = "TLSv1.3";
+
+    /** SSL Certificate expiration timestamp */
+    @Column(name = "ssl_expires_at")
+    private java.time.Instant sslExpiresAt;
 }

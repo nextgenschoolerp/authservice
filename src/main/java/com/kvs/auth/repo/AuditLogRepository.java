@@ -25,4 +25,15 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
             @Param("ipAddress") String ipAddress,
             @Param("from") Instant from,
             @Param("to") Instant to);
+
+    @Query("SELECT a FROM AuditLog a WHERE " +
+           "(a.action IN ('SUPER_ADMIN_REGISTER', 'CLONE_ROLE', 'ASSIGN_SCREEN_PERMISSIONS', 'CONFIGURE_IP_WHITELIST', " +
+           "'CONFIGURE_LOCKOUT_POLICY', 'USER_SESSIONS_REVOKED', 'ADMIN_ACCOUNT_UNLOCKED', 'ADMIN_PASSWORD_RESET', " +
+           "'SET_SESSION_IDLE_TIMEOUT', 'FIELD_ENCRYPTION_ENFORCED', 'SECURITY_ALERT_RULE_CONFIGURED', 'SCHEMA_PROVISIONED')) " +
+           "AND (:from IS NULL OR a.eventTime >= :from) " +
+           "AND (:to IS NULL OR a.eventTime <= :to) " +
+           "ORDER BY a.eventTime DESC")
+    List<AuditLog> findHighPrivilegeLogs(
+            @Param("from") Instant from,
+            @Param("to") Instant to);
 }

@@ -63,6 +63,44 @@ public class RoleService {
     }
 
     @Transactional
+    public RoleResponse cloneRole(Long sourceRoleId, CloneRoleRequest request) {
+        log.info("Cloning role from sourceRoleId: {} to new name: {}", sourceRoleId, request.getNewRoleName());
+        Role sourceRole = roleRepository.findById(sourceRoleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "id", sourceRoleId));
+
+        if (roleRepository.findByName(request.getNewRoleName()).isPresent()) {
+            throw new ConflictException("Role with name " + request.getNewRoleName() + " already exists");
+        }
+
+        Role clonedRole = new Role();
+        clonedRole.setName(request.getNewRoleName());
+        clonedRole.setDescription(request.getNewRoleDescription() != null
+                ? request.getNewRoleDescription()
+                : "Cloned from " + sourceRole.getName() + ": " + sourceRole.getDescription());
+        clonedRole.setActive(true);
+
+        Role savedRole = roleRepository.save(clonedRole);
+
+        List<RolePermission> sourcePermissions = rolePermissionRepository.findByRoleId(sourceRoleId);
+        for (RolePermission srcPerm : sourcePermissions) {
+            RolePermission newPerm = new RolePermission();
+            newPerm.setRole(savedRole);
+            newPerm.setScreenName(srcPerm.getScreenName());
+            newPerm.setCanRead(srcPerm.isCanRead());
+            newPerm.setCanWrite(srcPerm.isCanWrite());
+            newPerm.setCanDelete(srcPerm.isCanDelete());
+            newPerm.setCanExport(srcPerm.isCanExport());
+            rolePermissionRepository.save(newPerm);
+        }
+
+        logAudit("CLONE_ROLE", "role:" + savedRole.getId(), "SUCCESS",
+                "Cloned role from source " + sourceRole.getName() + " to " + savedRole.getName() +
+                        " with " + sourcePermissions.size() + " permissions");
+
+        return mapToRoleResponse(savedRole);
+    }
+
+    @Transactional
     public List<RolePermissionResponse> assignPermissions(Long roleId, List<RolePermissionRequest> requests) {
         log.info("Assigning screen permissions to roleId: {}", roleId);
         Role role = roleRepository.findById(roleId)

@@ -1,7 +1,6 @@
 package com.kvs.auth.service;
 
-import com.kvs.auth.dto.TenantIsolationConfigRequest;
-import com.kvs.auth.dto.TenantIsolationConfigResponse;
+import com.kvs.auth.dto.*;
 import com.kvs.auth.entity.AuditLog;
 import com.kvs.auth.entity.TenantIsolationConfig;
 import com.kvs.auth.repo.AuditLogRepository;
@@ -84,6 +83,55 @@ public class TenantIsolationConfigService {
         TenantIsolationConfig config = tenantIsolationConfigRepository.findByTenantId(tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("TenantIsolationConfig", "tenantId", tenantId));
         return mapToResponse(config);
+    }
+
+    @Transactional
+    public com.kvs.auth.dto.SslCertificateResponse configureSslCertificate(String tenantId, com.kvs.auth.dto.SslCertificateRequest request) {
+        log.info("Configuring SSL/TLS certificate for tenantId: {}, domain: {}", tenantId, request.getDomainName());
+        TenantIsolationConfig config = tenantIsolationConfigRepository.findByTenantId(tenantId)
+                .orElseGet(() -> {
+                    TenantIsolationConfig newConfig = new TenantIsolationConfig();
+                    newConfig.setTenantId(tenantId);
+                    newConfig.setSchemaName("tenant_" + tenantId.replace("-", "_").toLowerCase());
+                    return newConfig;
+                });
+
+        config.setDomainName(request.getDomainName());
+        config.setSslEnabled(request.isSslEnabled());
+        config.setSslAutoRenewEnabled(request.isAutoRenewEnabled());
+        config.setTlsVersion(request.getTlsVersion() != null ? request.getTlsVersion() : "TLSv1.3");
+        config.setSslExpiresAt(Instant.now().plus(90, java.time.temporal.ChronoUnit.DAYS));
+
+        TenantIsolationConfig saved = tenantIsolationConfigRepository.save(config);
+
+        logAudit(tenantId, "CONFIGURE_SSL_CERTIFICATE", "SUCCESS",
+                "Configured SSL/TLS domain routing for: " + request.getDomainName() + ", TLS: " + config.getTlsVersion());
+
+        return com.kvs.auth.dto.SslCertificateResponse.builder()
+                .tenantId(tenantId)
+                .domainName(saved.getDomainName())
+                .sslEnabled(saved.isSslEnabled())
+                .autoRenewEnabled(saved.isSslAutoRenewEnabled())
+                .tlsVersion(saved.getTlsVersion())
+                .certificateExpiresAt(saved.getSslExpiresAt())
+                .status("ACTIVE_SECURED")
+                .build();
+    }
+
+    public com.kvs.auth.dto.SslCertificateResponse getSslCertificate(String tenantId) {
+        log.info("Retrieving SSL certificate details for tenantId: {}", tenantId);
+        TenantIsolationConfig config = tenantIsolationConfigRepository.findByTenantId(tenantId)
+                .orElseThrow(() -> new ResourceNotFoundException("TenantIsolationConfig", "tenantId", tenantId));
+
+        return com.kvs.auth.dto.SslCertificateResponse.builder()
+                .tenantId(tenantId)
+                .domainName(config.getDomainName() != null ? config.getDomainName() : tenantId + ".schoolerp.internal")
+                .sslEnabled(config.isSslEnabled())
+                .autoRenewEnabled(config.isSslAutoRenewEnabled())
+                .tlsVersion(config.getTlsVersion() != null ? config.getTlsVersion() : "TLSv1.3")
+                .certificateExpiresAt(config.getSslExpiresAt() != null ? config.getSslExpiresAt() : Instant.now().plus(90, java.time.temporal.ChronoUnit.DAYS))
+                .status(config.isSslEnabled() ? "ACTIVE_SECURED" : "EXPIRED_OR_DISABLED")
+                .build();
     }
 
     private void logAudit(String tenantId, String action, String outcome, String details) {

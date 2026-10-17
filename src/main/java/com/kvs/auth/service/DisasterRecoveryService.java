@@ -33,6 +33,9 @@ public class DisasterRecoveryService {
     private DisasterRecoveryBackupRepository backupRepository;
 
     @Autowired
+    private com.kvs.auth.repo.SecurityAlertRuleRepository alertRuleRepository;
+
+    @Autowired
     private AuditLogRepository auditLogRepository;
 
     @Autowired(required = false)
@@ -80,6 +83,57 @@ public class DisasterRecoveryService {
         DisasterRecoveryBackup backup = backupRepository.findById(backupId)
                 .orElseThrow(() -> new ResourceNotFoundException("DisasterRecoveryBackup", "id", backupId));
         return mapToResponse(backup);
+    }
+
+    @Transactional
+    public com.kvs.auth.dto.SecurityAlertRuleResponse createAlertRule(com.kvs.auth.dto.SecurityAlertRuleRequest request) {
+        log.info("Configuring automated security alert rule: {} for tenantId: {}", request.getRuleName(), request.getTenantId());
+
+        com.kvs.auth.entity.SecurityAlertRule rule = new com.kvs.auth.entity.SecurityAlertRule();
+        rule.setTenantId(request.getTenantId());
+        rule.setRuleName(request.getRuleName());
+        rule.setConditionPattern(request.getCondition());
+        rule.setThresholdAttempts(request.getThresholdAttempts());
+        rule.setSeverity(request.getSeverity());
+        rule.setNotificationChannel(request.getNotificationChannel());
+        rule.setEnabled(request.isEnabled());
+
+        com.kvs.auth.entity.SecurityAlertRule saved = alertRuleRepository.save(rule);
+
+        logAudit(request.getTenantId(), "SECURITY_ALERT_RULE_CONFIGURED", "SUCCESS",
+                "Created security alert rule '" + saved.getRuleName() + "' for condition: " + saved.getConditionPattern()
+                        + " with threshold " + saved.getThresholdAttempts() + " attempts");
+
+        return com.kvs.auth.dto.SecurityAlertRuleResponse.builder()
+                .id(saved.getId())
+                .tenantId(saved.getTenantId())
+                .ruleName(saved.getRuleName())
+                .condition(saved.getConditionPattern())
+                .thresholdAttempts(saved.getThresholdAttempts())
+                .severity(saved.getSeverity())
+                .notificationChannel(saved.getNotificationChannel())
+                .enabled(saved.isEnabled())
+                .createdAt(saved.getCreatedAt())
+                .status("ACTIVE")
+                .build();
+    }
+
+    public List<com.kvs.auth.dto.SecurityAlertRuleResponse> getAlertRules(String tenantId) {
+        log.info("Retrieving alert rules for tenantId: {}", tenantId);
+        return alertRuleRepository.findByTenantId(tenantId).stream()
+                .map(r -> com.kvs.auth.dto.SecurityAlertRuleResponse.builder()
+                        .id(r.getId())
+                        .tenantId(r.getTenantId())
+                        .ruleName(r.getRuleName())
+                        .condition(r.getConditionPattern())
+                        .thresholdAttempts(r.getThresholdAttempts())
+                        .severity(r.getSeverity())
+                        .notificationChannel(r.getNotificationChannel())
+                        .enabled(r.isEnabled())
+                        .createdAt(r.getCreatedAt())
+                        .status(r.isEnabled() ? "ACTIVE" : "DISABLED")
+                        .build())
+                .collect(Collectors.toList());
     }
 
     private void logAudit(String tenantId, String action, String outcome, String details) {

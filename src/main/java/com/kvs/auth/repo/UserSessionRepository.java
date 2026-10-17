@@ -13,4 +13,8 @@ public interface UserSessionRepository extends JpaRepository<UserSession, Long> 
     Optional<UserSession> findBySessionId(String sessionId);
 
     List<UserSession> findByUserIdAndRevokedFalse(String userId);
+
+    List<UserSession> findByUserId(String userId);
+
+    long countByTenantIdAndRevokedFalse(String tenantId);
 }

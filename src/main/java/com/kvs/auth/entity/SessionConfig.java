@@ -39,4 +39,52 @@ public class SessionConfig extends BaseAuditEntity {
     /** Maximum number of concurrent sessions per user */
     @Column(name = "max_concurrent_sessions", nullable = false)
     private int maxConcurrentSessions = 1;
+
+    /** Authorized campus IP subnets or CIDRs (comma-delimited) */
+    @Column(name = "allowed_subnets", length = 1000)
+    private String allowedSubnets;
+
+    /** Whether login is restricted strictly to campus subnets */
+    @Column(name = "enforce_campus_subnet", nullable = false)
+    private boolean enforceCampusSubnet = false;
+
+    /** Maximum consecutive failed password attempts before lockout (default: 5) */
+    @Column(name = "max_failed_attempts", nullable = false)
+    private int maxFailedAttempts = 5;
+
+    /** Lockout duration in minutes (default: 30) */
+    @Column(name = "lockout_duration_minutes", nullable = false)
+    private int lockoutDurationMinutes = 30;
+
+    /** Whether account automatically unlocks after duration expires */
+    @Column(name = "auto_unlock_enabled", nullable = false)
+    private boolean autoUnlockEnabled = true;
+
+    /** Password complexity: minimum character length */
+    @Column(name = "min_password_length", nullable = false)
+    private int minPasswordLength = 8;
+
+    /** Password complexity: require uppercase letter */
+    @Column(name = "require_uppercase", nullable = false)
+    private boolean requireUppercase = true;
+
+    /** Password complexity: require lowercase letter */
+    @Column(name = "require_lowercase", nullable = false)
+    private boolean requireLowercase = true;
+
+    /** Password complexity: require numeric digit */
+    @Column(name = "require_digits", nullable = false)
+    private boolean requireDigits = true;
+
+    /** Password complexity: require special character */
+    @Column(name = "require_special_chars", nullable = false)
+    private boolean requireSpecialChars = true;
+
+    /** Password expiry period in days (0 = never) */
+    @Column(name = "password_expiry_days", nullable = false)
+    private int passwordExpiryDays = 90;
+
+    /** Number of past passwords prevented from reuse */
+    @Column(name = "prevent_reuse_count", nullable = false)
+    private int preventReuseCount = 3;
 }

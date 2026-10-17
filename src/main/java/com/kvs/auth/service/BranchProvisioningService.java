@@ -1,7 +1,6 @@
 package com.kvs.auth.service;
 
-import com.kvs.auth.dto.BranchProvisioningRequest;
-import com.kvs.auth.dto.BranchProvisioningResponse;
+import com.kvs.auth.dto.*;
 import com.kvs.auth.entity.AuditLog;
 import com.kvs.auth.entity.BranchProvisioning;
 import com.kvs.auth.repo.AuditLogRepository;
@@ -31,6 +30,9 @@ public class BranchProvisioningService {
 
     @Autowired
     private BranchProvisioningRepository branchProvisioningRepository;
+
+    @Autowired
+    private com.kvs.auth.repo.UserSessionRepository userSessionRepository;
 
     @Autowired
     private AuditLogRepository auditLogRepository;
@@ -88,6 +90,30 @@ public class BranchProvisioningService {
         return branchProvisioningRepository.findByTenantId(tenantId).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    public com.kvs.auth.dto.BranchConcurrencyResponse getBranchConcurrency(String tenantId, String branchCode) {
+        log.info("Monitoring active user concurrency for tenantId: {}, branchCode: {}", tenantId, branchCode);
+        BranchProvisioning branch = branchProvisioningRepository.findByTenantIdAndBranchCode(tenantId, branchCode)
+                .orElseThrow(() -> new ResourceNotFoundException("BranchProvisioning", "branchCode", branchCode));
+
+        long activeUsers = userSessionRepository.countByTenantIdAndRevokedFalse(tenantId);
+        int totalLimit = branch.getStudentCapacity() + branch.getStaffCapacity();
+        double utilization = totalLimit > 0 ? ((double) activeUsers / totalLimit) * 100.0 : 0.0;
+        boolean exceeded = activeUsers > totalLimit;
+
+        return com.kvs.auth.dto.BranchConcurrencyResponse.builder()
+                .tenantId(tenantId)
+                .branchCode(branchCode)
+                .branchName(branch.getBranchName())
+                .activeUsersCount(activeUsers)
+                .studentCapacity(branch.getStudentCapacity())
+                .staffCapacity(branch.getStaffCapacity())
+                .totalCapacity(totalLimit)
+                .utilizationPercentage(Math.round(utilization * 100.0) / 100.0)
+                .capacityExceeded(exceeded)
+                .status(exceeded ? "CAPACITY_EXCEEDED" : "WITHIN_LIMITS")
+                .build();
     }
 
     private void logAudit(String tenantId, String action, String outcome, String details) {

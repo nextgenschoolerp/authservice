@@ -1,7 +1,6 @@
 package com.kvs.auth.controller;
 
-import com.kvs.auth.dto.BranchProvisioningRequest;
-import com.kvs.auth.dto.BranchProvisioningResponse;
+import com.kvs.auth.dto.*;
 import com.kvs.auth.service.BranchProvisioningService;
 import com.kvs.core.dto.ApiResponse;
 import jakarta.validation.Valid;
@@ -55,6 +54,23 @@ public class BranchProvisioningController {
             @PathVariable("tenantId") String tenantId) {
         log.info("Request to list branches for tenantId: {}", tenantId);
         List<BranchProvisioningResponse> response = branchProvisioningService.listBranches(tenantId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /**
+     * Monitor active user concurrency counts against plan seat limits (US-00018).
+     *
+     * @param tenantId   unique tenant identifier
+     * @param branchCode branch identifier
+     * @return 200 OK envelope with active concurrency metrics and seat utilization
+     */
+    @GetMapping("/{tenantId}/branches/{branchCode}/concurrency")
+    @PreAuthorize("hasRole('TRUSTEE') or hasRole('SUPER_ADMIN') or hasRole('PRINCIPAL') or hasRole('IT_SYSTEM_ADMIN') or hasAuthority('ROLE_TRUSTEE') or hasAuthority('ROLE_SUPER_ADMIN') or hasAuthority('ROLE_PRINCIPAL') or hasAuthority('ROLE_IT_SYSTEM_ADMIN')")
+    public ResponseEntity<ApiResponse<com.kvs.auth.dto.BranchConcurrencyResponse>> getBranchConcurrency(
+            @PathVariable("tenantId") String tenantId,
+            @PathVariable("branchCode") String branchCode) {
+        log.info("Request to inspect active concurrency for tenantId: {}, branchCode: {}", tenantId, branchCode);
+        com.kvs.auth.dto.BranchConcurrencyResponse response = branchProvisioningService.getBranchConcurrency(tenantId, branchCode);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

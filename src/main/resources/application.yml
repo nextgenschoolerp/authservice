@@ -22,6 +22,9 @@ spring:
 
 server:
   port: ${SERVER_PORT:8082}
+  servlet:
+    # All endpoints are served under http://localhost:8082/authservice (e.g. /authservice/api/v1/auth/login)
+    context-path: ${SERVER_CONTEXT_PATH:/authservice}
 
 jwt:
   secret: ${JWT_SECRET:5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437}

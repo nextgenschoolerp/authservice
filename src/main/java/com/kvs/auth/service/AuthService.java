@@ -521,6 +521,52 @@ public class AuthService {
                 .build();
     }
 
+    @Transactional
+    public RevokeSessionsResponse revokeUserSessionsWithDetails(String userId) {
+        log.info("Immediate session revocation requested for employee/user: {}", userId);
+        if (!userRepository.existsByUserId(userId)) {
+            throw new ResourceNotFoundException("User", "userId", userId);
+        }
+
+        List<UserSession> activeSessions = userSessionRepository.findByUserIdAndRevokedFalse(userId);
+        for (UserSession s : activeSessions) {
+            s.setRevoked(true);
+        }
+        userSessionRepository.saveAll(activeSessions);
+
+        String caller = SecurityUtils.getCurrentUserEmail().orElse("admin");
+        writeAuditLog(userId, "USER_SESSIONS_REVOKED", "user_sessions", "SUCCESS",
+                "Revoked " + activeSessions.size() + " active sessions by admin/supervisor: " + caller);
+
+        return RevokeSessionsResponse.builder()
+                .userId(userId)
+                .revokedSessionsCount(activeSessions.size())
+                .revokedAt(Instant.now())
+                .message("All active user sessions revoked successfully")
+                .build();
+    }
+
+    public List<UserSessionResponse> getUserSessions(String userId) {
+        log.info("Fetching sessions for userId: {}", userId);
+        if (!userRepository.existsByUserId(userId)) {
+            throw new ResourceNotFoundException("User", "userId", userId);
+        }
+
+        return userSessionRepository.findByUserId(userId).stream()
+                .map(s -> UserSessionResponse.builder()
+                        .sessionId(s.getSessionId())
+                        .userId(s.getUserId())
+                        .tenantId(s.getTenantId())
+                        .ipAddress(s.getIpAddress())
+                        .userAgent(s.getUserAgent())
+                        .loginAt(s.getLoginAt())
+                        .lastActivityAt(s.getLastActivityAt())
+                        .expiresAt(s.getExpiresAt())
+                        .revoked(s.isRevoked())
+                        .build())
+                .toList();
+    }
+
     private void revokeUserSessions(String userId) {
         try {
             List<UserSession> activeSessions = userSessionRepository.findByUserIdAndRevokedFalse(userId);

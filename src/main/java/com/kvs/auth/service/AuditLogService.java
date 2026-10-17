@@ -42,6 +42,15 @@ public class AuditLogService {
                 .collect(Collectors.toList());
     }
 
+    public List<AuditLogResponse> queryHighPrivilegeLogs(Instant from, Instant to) {
+        log.info("Querying high-privilege configuration change audit logs - from: {}, to: {}", from, to);
+        List<AuditLog> logs = auditLogRepository.findHighPrivilegeLogs(from, to);
+        logAuditQuery("HIGH_PRIVILEGE", null, logs.size());
+        return logs.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
     private void logAuditQuery(String filteredUserId, String filteredIp, int resultCount) {
         try {
             String currentUser = SecurityUtils.getCurrentUserEmail().orElse("security_auditor");

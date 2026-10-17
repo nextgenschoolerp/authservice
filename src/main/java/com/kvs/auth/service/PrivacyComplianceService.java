@@ -1,7 +1,6 @@
 package com.kvs.auth.service;
 
-import com.kvs.auth.dto.AnonymizeProfileRequest;
-import com.kvs.auth.dto.PrivacyAnonymizationResponse;
+import com.kvs.auth.dto.*;
 import com.kvs.auth.entity.AuditLog;
 import com.kvs.auth.entity.PrivacyAnonymizationLog;
 import com.kvs.auth.repo.AuditLogRepository;
@@ -29,6 +28,9 @@ public class PrivacyComplianceService {
 
     @Autowired
     private PrivacyAnonymizationLogRepository anonymizationLogRepository;
+
+    @Autowired
+    private com.kvs.auth.repo.FieldEncryptionPolicyRepository fieldEncryptionPolicyRepository;
 
     @Autowired
     private AuditLogRepository auditLogRepository;
@@ -72,6 +74,52 @@ public class PrivacyComplianceService {
         log.info("Fetching anonymization logs for tenantId: {}", tenantId);
         return anonymizationLogRepository.findByTenantId(tenantId).stream()
                 .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public com.kvs.auth.dto.FieldEncryptionPolicyResponse configureFieldEncryption(com.kvs.auth.dto.FieldEncryptionPolicyRequest request) {
+        log.info("Enforcing field-level encryption for entity: {}, tenantId: {}", request.getEntityName(), request.getTenantId());
+
+        com.kvs.auth.entity.FieldEncryptionPolicy policy = fieldEncryptionPolicyRepository
+                .findByTenantIdAndEntityName(request.getTenantId(), request.getEntityName())
+                .orElseGet(() -> {
+                    com.kvs.auth.entity.FieldEncryptionPolicy newPolicy = new com.kvs.auth.entity.FieldEncryptionPolicy();
+                    newPolicy.setTenantId(request.getTenantId());
+                    newPolicy.setEntityName(request.getEntityName());
+                    return newPolicy;
+                });
+
+        policy.setEncryptedFields(String.join(",", request.getEncryptedFields()));
+        policy.setAlgorithm(request.getAlgorithm() != null ? request.getAlgorithm() : "AES-256-GCM");
+        policy.setEnforced(request.isEnforced());
+
+        com.kvs.auth.entity.FieldEncryptionPolicy saved = fieldEncryptionPolicyRepository.save(policy);
+
+        logAudit("FIELD_ENCRYPTION_ENFORCED", "entity:" + request.getEntityName(), "SUCCESS",
+                "Enforced field-level encryption on fields [" + saved.getEncryptedFields() + "] using " + saved.getAlgorithm());
+
+        return com.kvs.auth.dto.FieldEncryptionPolicyResponse.builder()
+                .tenantId(saved.getTenantId())
+                .entityName(saved.getEntityName())
+                .encryptedFields(request.getEncryptedFields())
+                .algorithm(saved.getAlgorithm())
+                .enforced(saved.isEnforced())
+                .status("ENFORCED")
+                .build();
+    }
+
+    public List<com.kvs.auth.dto.FieldEncryptionPolicyResponse> getFieldEncryptionPolicies(String tenantId) {
+        log.info("Retrieving field-level encryption policies for tenantId: {}", tenantId);
+        return fieldEncryptionPolicyRepository.findByTenantId(tenantId).stream()
+                .map(p -> com.kvs.auth.dto.FieldEncryptionPolicyResponse.builder()
+                        .tenantId(p.getTenantId())
+                        .entityName(p.getEntityName())
+                        .encryptedFields(List.of(p.getEncryptedFields().split(",")))
+                        .algorithm(p.getAlgorithm())
+                        .enforced(p.isEnforced())
+                        .status(p.isEnforced() ? "ENFORCED" : "INACTIVE")
+                        .build())
                 .collect(Collectors.toList());
     }
 

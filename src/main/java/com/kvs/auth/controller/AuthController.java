@@ -144,5 +144,35 @@ public class AuthController {
         AdminResetPasswordResponse response = authService.adminResetPassword(userId);
         return ResponseEntity.ok(ApiResponse.success("Temporary password generated successfully", response));
     }
+
+    /**
+     * Revoke active user sessions instantly upon employee resignation or security concern (US-00014).
+     *
+     * @param userId unique target user identifier
+     * @return 200 OK envelope confirming session revocation count
+     */
+    @PostMapping({"/{userId}/sessions/revoke", "/sessions/revoke/{userId}"})
+    @PreAuthorize("hasRole('DEPARTMENT_HEAD') or hasRole('SUPER_ADMIN') or hasRole('PRINCIPAL') or hasRole('IT_SYSTEM_ADMIN') or hasAuthority('ROLE_DEPARTMENT_HEAD') or hasAuthority('ROLE_SUPER_ADMIN') or hasAuthority('ROLE_PRINCIPAL') or hasAuthority('ROLE_IT_SYSTEM_ADMIN')")
+    public ResponseEntity<ApiResponse<com.kvs.auth.dto.RevokeSessionsResponse>> revokeUserSessions(
+            @PathVariable("userId") String userId) {
+        log.info("Request to revoke active sessions for userId: {}", userId);
+        com.kvs.auth.dto.RevokeSessionsResponse response = authService.revokeUserSessionsWithDetails(userId);
+        return ResponseEntity.ok(ApiResponse.success("All active user sessions revoked successfully", response));
+    }
+
+    /**
+     * Retrieve active or historic user sessions for investigation (US-00014).
+     *
+     * @param userId unique target user identifier
+     * @return 200 OK envelope with user sessions
+     */
+    @GetMapping({"/{userId}/sessions", "/sessions/{userId}"})
+    @PreAuthorize("hasRole('DEPARTMENT_HEAD') or hasRole('SUPER_ADMIN') or hasRole('PRINCIPAL') or hasRole('IT_SYSTEM_ADMIN') or hasAuthority('ROLE_DEPARTMENT_HEAD') or hasAuthority('ROLE_SUPER_ADMIN') or hasAuthority('ROLE_PRINCIPAL') or hasAuthority('ROLE_IT_SYSTEM_ADMIN')")
+    public ResponseEntity<ApiResponse<java.util.List<com.kvs.auth.dto.UserSessionResponse>>> getUserSessions(
+            @PathVariable("userId") String userId) {
+        log.info("Request to inspect sessions for userId: {}", userId);
+        java.util.List<com.kvs.auth.dto.UserSessionResponse> response = authService.getUserSessions(userId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 }
 

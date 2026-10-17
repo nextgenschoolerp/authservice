@@ -37,6 +37,17 @@ public class RoleController {
                 .body(ApiResponse.success("Role created successfully", response));
     }
 
+    @PostMapping("/{roleId}/clone")
+    @PreAuthorize("hasRole('PRINCIPAL') or hasRole('TRUSTEE') or hasRole('SUPER_ADMIN') or hasAuthority('ROLE_PRINCIPAL') or hasAuthority('ROLE_TRUSTEE') or hasAuthority('ROLE_SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<RoleResponse>> cloneRole(
+            @PathVariable("roleId") Long roleId,
+            @Valid @RequestBody CloneRoleRequest request) {
+        log.info("Request to clone roleId: {} into: {}", roleId, request.getNewRoleName());
+        RoleResponse response = roleService.cloneRole(roleId, request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Role cloned successfully with permissions", response));
+    }
+
     @PostMapping("/{roleId}/permissions")
     @PreAuthorize("hasRole('TRUSTEE') or hasRole('SUPER_ADMIN') or hasAuthority('ROLE_TRUSTEE') or hasAuthority('ROLE_SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<List<RolePermissionResponse>>> assignPermissions(

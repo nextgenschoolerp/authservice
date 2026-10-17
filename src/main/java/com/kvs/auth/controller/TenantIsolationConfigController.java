@@ -1,7 +1,6 @@
 package com.kvs.auth.controller;
 
-import com.kvs.auth.dto.TenantIsolationConfigRequest;
-import com.kvs.auth.dto.TenantIsolationConfigResponse;
+import com.kvs.auth.dto.*;
 import com.kvs.auth.service.TenantIsolationConfigService;
 import com.kvs.core.dto.ApiResponse;
 import jakarta.validation.Valid;
@@ -55,6 +54,38 @@ public class TenantIsolationConfigController {
             @PathVariable("tenantId") String tenantId) {
         log.info("Request to retrieve tenant isolation parameters for tenantId: {}", tenantId);
         TenantIsolationConfigResponse response = tenantIsolationConfigService.getIsolationConfig(tenantId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /**
+     * Manage SSL/TLS certificate renewals and secure HTTPS domain routing (US-00016).
+     *
+     * @param tenantId unique tenant identifier
+     * @param request  domain name, TLS version, and renewal flags
+     * @return 200 OK envelope with updated certificate status
+     */
+    @PostMapping("/{tenantId}/ssl-certificate")
+    @PreAuthorize("hasRole('COMPLIANCE_OFFICER') or hasRole('SUPER_ADMIN') or hasRole('IT_SYSTEM_ADMIN') or hasAuthority('ROLE_COMPLIANCE_OFFICER') or hasAuthority('ROLE_SUPER_ADMIN') or hasAuthority('ROLE_IT_SYSTEM_ADMIN')")
+    public ResponseEntity<ApiResponse<com.kvs.auth.dto.SslCertificateResponse>> configureSslCertificate(
+            @PathVariable("tenantId") String tenantId,
+            @Valid @RequestBody com.kvs.auth.dto.SslCertificateRequest request) {
+        log.info("Request to configure SSL certificate for tenantId: {}", tenantId);
+        com.kvs.auth.dto.SslCertificateResponse response = tenantIsolationConfigService.configureSslCertificate(tenantId, request);
+        return ResponseEntity.ok(ApiResponse.success("SSL/TLS certificate and HTTPS routing configured successfully", response));
+    }
+
+    /**
+     * Retrieve SSL/TLS certificate renewal status (US-00016).
+     *
+     * @param tenantId unique tenant identifier
+     * @return 200 OK envelope with certificate metadata
+     */
+    @GetMapping("/{tenantId}/ssl-certificate")
+    @PreAuthorize("hasRole('COMPLIANCE_OFFICER') or hasRole('SUPER_ADMIN') or hasRole('IT_SYSTEM_ADMIN') or hasAuthority('ROLE_COMPLIANCE_OFFICER') or hasAuthority('ROLE_SUPER_ADMIN') or hasAuthority('ROLE_IT_SYSTEM_ADMIN')")
+    public ResponseEntity<ApiResponse<com.kvs.auth.dto.SslCertificateResponse>> getSslCertificate(
+            @PathVariable("tenantId") String tenantId) {
+        log.info("Request to get SSL certificate details for tenantId: {}", tenantId);
+        com.kvs.auth.dto.SslCertificateResponse response = tenantIsolationConfigService.getSslCertificate(tenantId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

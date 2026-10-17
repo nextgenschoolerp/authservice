@@ -1,0 +1,148 @@
+package com.kvs.auth.controller;
+
+import com.kvs.auth.dto.*;
+import com.kvs.auth.service.AuthService;
+import com.kvs.core.dto.ApiResponse;
+import com.kvs.core.util.SecurityUtils;
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+/**
+ * Controller providing public and authenticated identity endpoints:
+ * 1. Super Admin Self-Registration and Educational Society Onboarding
+ * 2. Multi-tenant User Authentication (Login) with Lockout Protection
+ * 3. Authenticated Principal Profile Inspection (/me)
+ * 4. Password Lifecycle Management (Forgot, Reset, Change, Admin Reset, Unlock)
+ */
+@RestController
+@Slf4j
+@RequestMapping({"/api/v1/auth", "/api/v1/users"})
+public class AuthController {
+
+    @Autowired
+    private AuthService authService;
+
+    /**
+     * Register a new educational trust/society and provision the root Super Administrator account.
+     *
+     * @param request the registration details
+     * @return 201 Created envelope with created tenant and Super Admin details
+     */
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<SuperAdminRegisterResponse>> registerSuperAdmin(
+            @Valid @RequestBody SuperAdminRegisterRequest request) {
+        log.info("Request to register Super Admin: {} for society: {}", request.getUsername(), request.getSocietyCode());
+        SuperAdminRegisterResponse response = authService.registerSuperAdmin(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Super Administrator and Educational Society onboarded successfully", response));
+    }
+
+    /**
+     * Authenticate Super Admin or platform user with credentials.
+     * Enforces account lockout rules (5 consecutive failed attempts lock for 30 minutes).
+     *
+     * @param request username/email, password, and optional tenant context
+     * @return 200 OK envelope with JWT access token and user identity
+     */
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<AuthResponse>> login(
+            @Valid @RequestBody LoginRequest request) {
+        log.info("Request to authenticate user: {}", request.getUsername());
+        AuthResponse response = authService.login(request);
+        return ResponseEntity.ok(ApiResponse.success("Authentication successful", response));
+    }
+
+    /**
+     * Retrieve the currently authenticated principal's profile details.
+     *
+     * @return 200 OK envelope with authenticated user profile
+     */
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<AuthResponse>> getCurrentUser() {
+        String username = SecurityUtils.getCurrentUserEmail()
+                .orElseThrow(() -> new IllegalStateException("No authenticated principal found in security context"));
+        log.info("Request to retrieve authenticated profile for: {}", username);
+        AuthResponse response = authService.getCurrentUserProfile(username);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /**
+     * Request a time-limited single-use password reset token (US-01001).
+     *
+     * @param request identifier (username or email)
+     * @return 200 OK generic envelope to prevent user enumeration
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<ForgotPasswordResponse>> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+        log.info("Request for password reset token for: {}", request.getIdentifier());
+        ForgotPasswordResponse response = authService.forgotPassword(request);
+        return ResponseEntity.ok(ApiResponse.success(response.getMessage(), response));
+    }
+
+    /**
+     * Reset account password using single-use verification token (US-01002).
+     *
+     * @param request token and new compliant password
+     * @return 200 OK envelope confirming password reset
+     */
+    @PostMapping({"/reset-password", "/password-reset"})
+    public ResponseEntity<ApiResponse<AuthResponse>> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
+        log.info("Request to reset password with token");
+        AuthResponse response = authService.resetPassword(request);
+        return ResponseEntity.ok(ApiResponse.success("Password has been reset successfully", response));
+    }
+
+    /**
+     * Authenticated user self-service password change (US-01003 & US-01004).
+     *
+     * @param request current password, new compliant password, confirmation
+     * @return 200 OK envelope confirming password change
+     */
+    @PutMapping("/change-password")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<AuthResponse>> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request) {
+        log.info("Authenticated request to change password");
+        AuthResponse response = authService.changePassword(request);
+        return ResponseEntity.ok(ApiResponse.success("Password changed successfully", response));
+    }
+
+    /**
+     * Administrative account unlock (US-01005).
+     *
+     * @param userId unique target user identifier
+     * @return 200 OK envelope confirming account unlock
+     */
+    @PostMapping({"/{userId}/unlock", "/unlock/{userId}"})
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'PRINCIPAL')")
+    public ResponseEntity<ApiResponse<UserUnlockResponse>> unlockUser(
+            @PathVariable("userId") String userId) {
+        log.info("Administrative unlock request for userId: {}", userId);
+        UserUnlockResponse response = authService.unlockUser(userId);
+        return ResponseEntity.ok(ApiResponse.success("User account unlocked successfully", response));
+    }
+
+    /**
+     * Administrative temporary password reset and forced reset flag enforcement (US-01005).
+     *
+     * @param userId unique target user identifier
+     * @return 200 OK envelope with generated temporary password
+     */
+    @PostMapping({"/{userId}/admin-reset-password", "/admin-reset-password/{userId}"})
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'PRINCIPAL')")
+    public ResponseEntity<ApiResponse<AdminResetPasswordResponse>> adminResetPassword(
+            @PathVariable("userId") String userId) {
+        log.info("Administrative password reset request for userId: {}", userId);
+        AdminResetPasswordResponse response = authService.adminResetPassword(userId);
+        return ResponseEntity.ok(ApiResponse.success("Temporary password generated successfully", response));
+    }
+}
+

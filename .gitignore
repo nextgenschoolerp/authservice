@@ -31,5 +31,7 @@ logs/
 .DS_Store
 Thumbs.db
 
-
+story/
+wiki/
+.agents/
 

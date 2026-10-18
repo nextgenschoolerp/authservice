@@ -250,6 +250,10 @@ public class AuthService {
             claims.put("roles", roleCodes);
         }
         claims.put("userId", user.getUserId());
+        // The subject is the username; services that match records by email (e.g. a parent's own applications) read this claim
+        if (user.getEmail() != null) {
+            claims.put("email", user.getEmail());
+        }
         claims.put("tenantId", user.getTenantId());
         claims.put("userType", user.getUserType());
         claims.put("mustChangePassword", mustChangePassword);
@@ -270,6 +274,7 @@ public class AuthService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .tenantId(user.getTenantId())
+                .branchId(user.getBranchId())
                 .userType(user.getUserType())
                 .roles(mustChangePassword ? List.of("ROLE_PASSWORD_CHANGE_REQUIRED") : roleCodes)
                 .mfaRequired(user.isMfaEnabled())
@@ -304,6 +309,7 @@ public class AuthService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .tenantId(user.getTenantId())
+                .branchId(user.getBranchId())
                 .userType(user.getUserType())
                 .roles(roles)
                 .mfaRequired(user.isMfaEnabled())
@@ -398,6 +404,7 @@ public class AuthService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .tenantId(user.getTenantId())
+                .branchId(user.getBranchId())
                 .userType(user.getUserType())
                 .message("Password has been reset successfully")
                 .build();
@@ -450,6 +457,7 @@ public class AuthService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .tenantId(user.getTenantId())
+                .branchId(user.getBranchId())
                 .userType(user.getUserType())
                 .mustChangePassword(false)
                 .message("Password changed successfully")

@@ -165,6 +165,8 @@ INSERT INTO seed_users VALUES
 ('5eed0001-0001-4000-8000-000000000012', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'cashier_ramesh',     'Ramesh',  'Tiwari',     'ramesh.accounts@dps.edu.in',    '+919811100112', 'FINANCE_CASHIER',         true,  false, '2026-07-01 05:20:00+00'),
 ('5eed0001-0001-4000-8000-000000000013', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'marketing_tanya',    'Tanya',   'Sethi',      'tanya.marketing@dps.edu.in',    '+919811100113', 'MARKETING_MANAGER',       true,  false, '2026-07-01 05:25:00+00'),
 ('5eed0001-0001-4000-8000-000000000014', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'parent_rohit',       'Rohit',   'Sharma',     'rohit.sharma@gmail.com',        '+919810012301', 'APPLICANT_PARENT',        true,  false, '2026-08-04 05:15:00+00'),
+-- vice principal (admissions): SCHOOL_PRINCIPAL approvals in module 02 (fee waivers, deposits) with the seed password
+('5eed0001-0001-4000-8000-000000000023', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'viceprincipal_kiran', 'Kiran',  'Malhotra',   'kiran.malhotra@dps.edu.in',     '+919811100123', 'PRINCIPAL',               true,  false, '2026-07-01 05:35:00+00'),
 -- DPS: edge cases
 ('5eed0001-0001-4000-8000-000000000015', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'teacher_neeraj',     'Neeraj',  'Bhatia',     'neeraj.bhatia@dps.edu.in',      '+919811100115', 'TEACHER',                 false, false, '2025-06-10 04:30:00+00'),
 ('5eed0001-0001-4000-8000-000000000016', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'teacher_farhan',     'Farhan',  'Qureshi',    'farhan.qureshi@dps.edu.in',     '+919811100116', 'TEACHER',                 true,  false, '2026-04-15 04:30:00+00'),
@@ -200,7 +202,9 @@ INSERT INTO user_roles (user_id, role_code, created_at, updated_at, created_by, 
 SELECT user_id, user_type, created_at, created_at, 'seed:module01', NULL, 0 FROM seed_users
 UNION ALL
 -- principal_anita (base seed) also collects admission deposits in module 02
-SELECT 'u2222222-2222-2222-2222-222222222222', 'SCHOOL_PRINCIPAL', TIMESTAMPTZ '2026-07-01 05:30:00+00', TIMESTAMPTZ '2026-07-01 05:30:00+00', 'seed:module01', NULL, 0;
+SELECT 'u2222222-2222-2222-2222-222222222222', 'SCHOOL_PRINCIPAL', TIMESTAMPTZ '2026-07-01 05:30:00+00', TIMESTAMPTZ '2026-07-01 05:30:00+00', 'seed:module01', NULL, 0
+UNION ALL
+SELECT '5eed0001-0001-4000-8000-000000000023', 'SCHOOL_PRINCIPAL', TIMESTAMPTZ '2026-07-01 05:35:00+00', TIMESTAMPTZ '2026-07-01 05:35:00+00', 'seed:module01', NULL, 0;
 
 -- ---------------------------------------------------------------------------------------------------
 -- 5. US-00004 / US-00014 Sessions (active staff sessions; ex-teacher's sessions revoked on resignation)

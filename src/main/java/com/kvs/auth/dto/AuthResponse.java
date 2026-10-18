@@ -23,6 +23,8 @@ public class AuthResponse {
     private String username;
     private String email;
     private String tenantId;
+    /** Branch (campus) code the user belongs to; lets clients scope branch-level APIs. */
+    private String branchId;
     private String userType;
     private List<String> roles;
     private boolean mfaRequired;

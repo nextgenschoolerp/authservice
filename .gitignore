@@ -20,6 +20,7 @@ application-secret.yml
 # Compiled
 *.class
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
 *.war
 *.ear
 
@@ -34,4 +35,3 @@ Thumbs.db
 story/
 wiki/
 .agents/
-

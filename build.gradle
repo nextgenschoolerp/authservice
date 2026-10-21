@@ -72,3 +72,7 @@ tasks.named('test') {
 tasks.named('jar') {
     enabled = false
 }
+
+bootRun {
+    sourceResources sourceSets.main
+}

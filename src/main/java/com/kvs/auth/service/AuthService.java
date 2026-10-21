@@ -411,7 +411,7 @@ public class AuthService {
     }
 
     /**
-     * Authenticated user password change with history verification (US-01003 & US-01004).
+     * Authenticated user password change with history verification (US-01003 and US-01004).
      */
     @Transactional
     public AuthResponse changePassword(ChangePasswordRequest request) {
@@ -625,4 +625,3 @@ public class AuthService {
         return "127.0.0.1";
     }
 }
-

@@ -9,7 +9,7 @@ import java.time.Instant;
 
 /**
  * Stores single-use, time-limited password reset tokens.
- * Covers: US-01001 & US-01002 — Self-service password reset lifecycle
+ * Covers: US-01001 and US-01002 — Self-service password reset lifecycle
  */
 @Entity
 @Table(name = "password_reset_tokens", indexes = {

@@ -9,7 +9,7 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Response payload returned upon successful Super Admin registration & society onboarding.
+ * Response payload returned upon successful Super Admin registration and society onboarding.
  */
 @Data
 @Builder

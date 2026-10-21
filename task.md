@@ -1,6 +1,6 @@
 # Task Execution Record: Module 01 — Authentication, Authorization & Security
 
-Execution of skill [`brd-to-api`](../.agents/skills/brd-to-api/SKILL.md) covering **US-00000 through US-00100** and **US-01001 through US-01005** based on [`School_ERP_Module_01_Auth_Security_1000.md`](../story/module1/School_ERP_Module_01_Auth_Security_1000.md).
+Execution of skill [`BRD_API_Generate`](../.agents/skills/BRD_API_Generate/SKILL.md) covering **US-00000 through US-00100** and **US-01001 through US-01005** based on [`School_ERP_Module_01_Auth_Security_1000.md`](../story/module1/School_ERP_Module_01_Auth_Security_1000.md).
 
 ---
 
@@ -10,7 +10,7 @@ Execution of skill [`brd-to-api`](../.agents/skills/brd-to-api/SKILL.md) coverin
 - **Base Package**: `com.kvs.auth`
 - **Allocated Server Port**: `8081` ([`application.yml`](src/main/resources/application.yml))
 - **Framework**: Spring Boot 3.2.5, Java 21 LTS, Spring Data JPA, Spring Security 6
-- **Reference Architecture**: [`java-patterns.md`](../.agents/skills/brd-to-api/references/java-patterns.md) & [`microservice-scaffolding-guide.md`](../.agents/skills/brd-to-api/references/microservice-scaffolding-guide.md)
+- **Reference Architecture**: [`java-patterns.md`](../.agents/skills/BRD_API_Generate/references/java-patterns.md) & [`microservice-scaffolding-guide.md`](../.agents/skills/BRD_API_Generate/references/microservice-scaffolding-guide.md)
 - **Database Schema**: PostgreSQL 14+ ([`module1.sql`](../story/module1/module1.sql))
 - **Wiki Guide**: [Confluence Module 01 Guide](https://janvijaiswal.atlassian.net/wiki/spaces/MFS/pages/2228227/Module+01+-+Authentication+Access+Control+and+Multi-Tenant+Infrastructure+BA+Analysis)
 - **Status**: **COMPLETE (100% Tests Passing)**
@@ -168,7 +168,7 @@ All documentation diagrams are formatted to be rendered natively as images by Co
 - [`module1_business_analysis.md`](../story/module1/module1_business_analysis.md) — Complete Module 01 Business Analysis guide with 10 rendered architecture diagrams, ER diagrams, sequence flows, and mindmaps ([Images Directory](../story/module1/images/)).
 
 ### 5.3 Skill Standardization & Guidelines
-- [`api-wiki-guide.md`](../.agents/skills/brd-to-api/references/api-wiki-guide.md) — Updated Section 3 with the mandatory **Confluence & Bitbucket Compatibility Requirement** (Base64 image embedding, local PNG/SVG generation, and collapsible source blocks).
+- [`api-wiki-guide.md`](../.agents/skills/BRD_API_Generate/references/api-wiki-guide.md) — Updated Section 3 with the mandatory **Confluence & Bitbucket Compatibility Requirement** (Base64 image embedding, local PNG/SVG generation, and collapsible source blocks).
 
 ---
 

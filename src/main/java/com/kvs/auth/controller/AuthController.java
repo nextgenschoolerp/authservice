@@ -101,7 +101,7 @@ public class AuthController {
     }
 
     /**
-     * Authenticated user self-service password change (US-01003 & US-01004).
+     * Authenticated user self-service password change (US-01003 and US-01004).
      *
      * @param request current password, new compliant password, confirmation
      * @return 200 OK envelope confirming password change
@@ -175,4 +175,3 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
-

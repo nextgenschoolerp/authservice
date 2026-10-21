@@ -15,8 +15,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Runs the audit queries against the real database (PostgreSQL in application.yml), where untyped null
- * parameters used to fail with "could not determine data type of parameter". Rolled back after each test.
+ * Runs audit repository query tests against the isolated in-memory test database.
  * Covers: US-00005 (filtered audit query), US-00015 (high-privilege audit view)
  */
 @SpringBootTest

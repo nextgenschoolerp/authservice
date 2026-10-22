@@ -11,6 +11,7 @@
 --     a locked-out teacher, and a principal who must change the password on first login
 --   * sessions, API tokens, reset tokens, delegations, anonymization logs, encryption policies,
 --     alert rules, backups and audit entries for those accounts
+--   * the DPS school profile (Settings → General → School profile)
 --
 -- Login password for every seeded account: Password@123 (BCrypt, cost 10)
 --
@@ -42,6 +43,7 @@ DELETE FROM branches_provisioning       WHERE created_by = 'seed:module01';
 DELETE FROM mfa_config                  WHERE created_by = 'seed:module01';
 DELETE FROM session_config              WHERE created_by = 'seed:module01';
 DELETE FROM tenant_isolation_config     WHERE created_by = 'seed:module01';
+DELETE FROM tenant_school_profiles      WHERE created_by = 'seed:module01';
 DELETE FROM tenants                     WHERE created_by = 'seed:module01';
 
 -- Base rows were inserted with explicit ids; make sure every sequence is past the highest id
@@ -51,7 +53,7 @@ BEGIN
     FOREACH t IN ARRAY ARRAY['tenants','branches_provisioning','tenant_isolation_config','mfa_config','session_config','roles',
                              'role_permissions','users','user_roles','user_credentials','user_sessions','api_tokens',
                              'password_reset_tokens','role_delegations','privacy_anonymization_logs','field_encryption_policies',
-                             'security_alert_rules','disaster_recovery_backups','audit_logs']
+                             'security_alert_rules','disaster_recovery_backups','audit_logs','tenant_school_profiles']
     LOOP
         EXECUTE format('SELECT setval(pg_get_serial_sequence(%L, ''id''), GREATEST((SELECT COALESCE(MAX(id), 0) FROM %I), '
                        '(SELECT last_value FROM %s)), true)', t, t, pg_get_serial_sequence(t, 'id'));
@@ -389,5 +391,15 @@ FROM (VALUES
     ('5eed0001-0001-4000-8000-000000000018', '10.40.1.3',   'EXECUTE_BACKUP', 'disaster_recovery_backups', 'SUCCESS', TIMESTAMPTZ '2026-10-12 22:10:00+00',
      'FULL backup snap-svkm-full-20261012 completed (2.2 GB, AES-256-GCM, AWS_S3)')
 ) AS a(user_id, ip, action, resource, outcome, at, details);
+
+-- ---------------------------------------------------------------------------------------------------
+-- 13. Settings → General → School profile of DPS (shown as Oakridge Academy in the UI); no crest yet, upload one
+--     from Settings to test "Change school crest"
+-- ---------------------------------------------------------------------------------------------------
+INSERT INTO tenant_school_profiles (tenant_id, school_name, campus_name, school_email, school_phone, school_reference, website, address,
+                                    created_at, updated_at, created_by, updated_by, version)
+VALUES ('a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Oakridge Academy', 'Main campus', 'office@oakridge.ac.uk', '+44 1865 555 100', 'OA-00482',
+        'www.oakridge.ac.uk', '12 Oakridge Road, Oxford, OX2 7AA, United Kingdom', now(), now(), 'seed:module01', NULL, 0)
+ON CONFLICT (tenant_id) DO NOTHING;
 
 COMMIT;

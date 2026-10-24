@@ -36,6 +36,9 @@ public class AuthWebMvcConfig implements WebMvcConfigurer {
                         "/api/v1/auth/reset-password",
                         "/api/v1/auth/password-change",
                         "/api/v1/auth/forgot-password",
+                        // First-time setup: public until the system is bootstrapped (the service locks it afterwards)
+                        "/api/v1/auth/bootstrap",
+                        "/api/v1/auth/bootstrap/**",
                         "/api/v1/users/login",
                         "/api/v1/users/logout",
                         "/api/v1/users/register",

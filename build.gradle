@@ -46,6 +46,7 @@ dependencies {
     implementation 'io.micrometer:micrometer-observation'
     implementation 'io.micrometer:micrometer-tracing-bridge-brave'
     implementation 'com.kvs.core:ms-core:1.0.0-SNAPSHOT'
+    implementation 'org.apache.poi:poi-ooxml:5.2.5'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

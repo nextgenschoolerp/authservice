@@ -39,6 +39,7 @@ Execution of skill [`BRD_API_Generate`](../.agents/skills/BRD_API_Generate/SKILL
 | **US-01003** | Core Identity & Password Lifecycle Management | `Authenticated User`<br/>(`isAuthenticated()`) | `PUT /api/v1/auth/change-password` | [x] Completed |
 | **US-01004** | Core Identity & Password Lifecycle Management | `New User on First Login`<br/>(`mustChangePassword`) | `POST /api/v1/auth/login` (flagged)<br/>`PUT /api/v1/auth/change-password` | [x] Completed |
 | **US-01005** | Core Identity & Password Lifecycle Management | `Super Admin / Principal`<br/>(`ROLE_SUPER_ADMIN`, `ROLE_PRINCIPAL`) | `POST /api/v1/users/{userId}/unlock`<br/>`POST /api/v1/users/{userId}/admin-reset-password` | [x] Completed |
+| **BOOTSTRAP** | Zero-State System Onboarding & Excel Importer | `IT Administrator`<br/>(`ROLE_IT_ADMIN`, `ROLE_SUPER_ADMIN`) | `GET /api/v1/auth/bootstrap/status`<br/>`GET /api/v1/auth/bootstrap/template`<br/>`POST /api/v1/auth/bootstrap`<br/>`POST /api/v1/auth/bootstrap/upload` | [x] Completed |
 
 ---
 
@@ -101,6 +102,7 @@ All entities extend `com.kvs.core.entity.BaseAuditEntity` (`id`, `createdAt`, `u
 - [`PasswordResetTokenRepository.java`](src/main/java/com/kvs/auth/repo/PasswordResetTokenRepository.java)
 
 ### 3.3 Services ([`src/main/java/com/kvs/auth/service/`](src/main/java/com/kvs/auth/service))
+- [`BootstrapService.java`](src/main/java/com/kvs/auth/service/BootstrapService.java) — Zero-state initialization, Excel template generator & spreadsheet parsing
 - [`AuthService.java`](src/main/java/com/kvs/auth/service/AuthService.java) — Registration, JWT login, profile, password reset, unlock (US-00000, US-00014, US-01001 – US-01005)
 - [`TenantIsolationConfigService.java`](src/main/java/com/kvs/auth/service/TenantIsolationConfigService.java) — Isolation settings & SSL cert binding (US-00001, US-00016)
 - [`RoleService.java`](src/main/java/com/kvs/auth/service/RoleService.java) — Role creation, permission grant, cloning (US-00002, US-00011)

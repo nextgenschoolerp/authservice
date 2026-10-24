@@ -12,12 +12,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.kvs.auth.service.BootstrapService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
+
 /**
  * Controller providing public and authenticated identity endpoints:
  * 1. Super Admin Self-Registration and Educational Society Onboarding
  * 2. Multi-tenant User Authentication (Login) with Lockout Protection
  * 3. Authenticated Principal Profile Inspection (/me)
  * 4. Password Lifecycle Management (Forgot, Reset, Change, Admin Reset, Unlock)
+ * 5. System Bootstrap and Initial Onboarding from Excel or Direct Payload
  */
 @RestController
 @Slf4j
@@ -26,6 +32,55 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private BootstrapService bootstrapService;
+
+    /**
+     * Inspect if the system requires initial setup/bootstrap.
+     */
+    @GetMapping("/bootstrap/status")
+    public ResponseEntity<ApiResponse<BootstrapStatusResponse>> getBootstrapStatus() {
+        log.info("Request to check system bootstrap status");
+        return ResponseEntity.ok(ApiResponse.success(bootstrapService.getBootstrapStatus()));
+    }
+
+    /**
+     * Download the standard Excel onboarding template.
+     */
+    @GetMapping("/bootstrap/template")
+    public ResponseEntity<byte[]> downloadBootstrapTemplate() throws Exception {
+        log.info("Request to download Excel bootstrap template");
+        byte[] bytes = bootstrapService.generateTemplate();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"School_ERP_Initial_Setup_Template.xlsx\"")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(bytes);
+    }
+
+    /**
+     * Perform initial system bootstrap via JSON payload.
+     */
+    @PostMapping(value = "/bootstrap", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ApiResponse<BootstrapResponse>> bootstrapJson(
+            @Valid @RequestBody BootstrapRequest request) {
+        log.info("Request for JSON-based system bootstrap: {}", request.getSocietyCode());
+        BootstrapResponse response = bootstrapService.bootstrap(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("System initialized successfully", response));
+    }
+
+    /**
+     * Perform initial system bootstrap via uploaded Excel file.
+     */
+    @PostMapping(value = "/bootstrap/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<BootstrapResponse>> bootstrapUpload(
+            @RequestParam("file") MultipartFile file) throws Exception {
+        log.info("Request for Excel upload system bootstrap: {}", file.getOriginalFilename());
+        BootstrapResponse response = bootstrapService.bootstrapFromUpload(file);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("System initialized successfully from Excel", response));
+    }
 
     /**
      * Register a new educational trust/society and provision the root Super Administrator account.

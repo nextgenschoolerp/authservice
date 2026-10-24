@@ -2,7 +2,7 @@
 -- Seed data: Module 01 — Authentication, Authorization, Security & Multi-Tenancy (authservice)
 -- Target DB : jdbc:postgresql://localhost:5432/authservice (tables created by Hibernate from the entities)
 --
--- Builds on the existing base rows (tenants DPS a0eEBc99-… and SVKM b1eEBc99-…, roles 1-10,
+-- Builds on the existing base rows (tenants DPS a0eebc99-… and SVKM b1eEBc99-…, roles 1-10,
 -- users admin_rajesh / principal_anita / teacher_vikram) and adds:
 --   * a third tenant, Greenfield Montessori Education Trust, with full isolation / MFA / session config
 --   * the Module 02 admission roles and the staff and parent accounts referenced by the module 02 seed
@@ -80,9 +80,9 @@ VALUES
 --    (one row per tenant — only for the new tenant; DPS and SVKM already have theirs)
 -- ---------------------------------------------------------------------------------------------------
 INSERT INTO tenant_isolation_config (tenant_id, schema_name, row_level_security_enabled, cross_tenant_access_blocked, encryption_algorithm,
-                                     domain_name, ssl_expires_at, tls_version, created_at, updated_at, created_by, updated_by, version)
+                                     domain_name, ssl_expires_at, tls_version, ssl_enabled, ssl_auto_renew_enabled, created_at, updated_at, created_by, updated_by, version)
 VALUES ('5eed0001-0000-4000-8000-000000000003', 'tenant_gmet_soc_03', true, true, 'AES-256-GCM',
-        'erp.greenfield.edu.in', '2027-03-31 23:59:59+00', 'TLSv1.3', '2026-06-02 06:10:00+00', '2026-09-01 04:00:00+00', 'seed:module01', 'lavanya.rao@greenfield.edu.in', 0);
+        'erp.greenfield.edu.in', '2027-03-31 23:59:59+00', 'TLSv1.3', true, true, '2026-06-02 06:10:00+00', '2026-09-01 04:00:00+00', 'seed:module01', 'lavanya.rao@greenfield.edu.in', 0);
 
 INSERT INTO mfa_config (tenant_id, totp_enabled, sms_enabled, mandatory_for_sensitive_transactions, max_failed_attempts,
                         created_at, updated_at, created_by, updated_by, version)
@@ -152,27 +152,27 @@ CREATE TEMP TABLE seed_users (user_id text, tenant_id text, branch_id text, user
                               phone text, user_type text, active boolean, mfa boolean, created_at timestamptz) ON COMMIT DROP;
 INSERT INTO seed_users VALUES
 -- DPS: one account per Module 01 role
-('5eed0001-0001-4000-8000-000000000001', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'trustee_arvind',     'Arvind',  'Khanna',     'arvind.khanna@dps.edu.in',      '+919811100101', 'TRUSTEE',                 true,  true,  '2026-04-01 04:30:00+00'),
-('5eed0001-0001-4000-8000-000000000002', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'itadmin_nitin',      'Nitin',   'Rao',        'nitin.rao@dps.edu.in',          '+919811100102', 'IT_SYSTEM_ADMIN',         true,  true,  '2026-04-01 04:35:00+00'),
-('5eed0001-0001-4000-8000-000000000003', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'auditor_pooja',      'Pooja',   'Bansal',     'pooja.bansal@dps.edu.in',       '+919811100103', 'SECURITY_AUDITOR',        true,  false, '2026-04-02 05:00:00+00'),
-('5eed0001-0001-4000-8000-000000000004', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'depthead_sameer',    'Sameer',  'Kulkarni',   'sameer.kulkarni@dps.edu.in',    '+919811100104', 'DEPARTMENT_HEAD',         true,  false, '2026-04-02 05:10:00+00'),
-('5eed0001-0001-4000-8000-000000000005', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'clerk_rakesh',       'Rakesh',  'Yadav',      'rakesh.yadav@dps.edu.in',       '+919811100105', 'ADMIN_CLERK',             true,  false, '2026-04-03 06:00:00+00'),
-('5eed0001-0001-4000-8000-000000000006', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'compliance_shalini', 'Shalini', 'Mehra',      'shalini.mehra@dps.edu.in',      '+919811100106', 'COMPLIANCE_OFFICER',      true,  true,  '2026-04-03 06:10:00+00'),
-('5eed0001-0001-4000-8000-000000000007', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'finance_geeta',      'Geeta',   'Arora',      'geeta.arora@dps.edu.in',        '+919811100107', 'FINANCE_OFFICER',         true,  true,  '2026-04-03 06:20:00+00'),
+('5eed0001-0001-4000-8000-000000000001', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'trustee_arvind',     'Arvind',  'Khanna',     'arvind.khanna@dps.edu.in',      '+919811100101', 'TRUSTEE',                 true,  true,  '2026-04-01 04:30:00+00'),
+('5eed0001-0001-4000-8000-000000000002', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'itadmin_nitin',      'Nitin',   'Rao',        'nitin.rao@dps.edu.in',          '+919811100102', 'IT_SYSTEM_ADMIN',         true,  true,  '2026-04-01 04:35:00+00'),
+('5eed0001-0001-4000-8000-000000000003', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'auditor_pooja',      'Pooja',   'Bansal',     'pooja.bansal@dps.edu.in',       '+919811100103', 'SECURITY_AUDITOR',        true,  false, '2026-04-02 05:00:00+00'),
+('5eed0001-0001-4000-8000-000000000004', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'depthead_sameer',    'Sameer',  'Kulkarni',   'sameer.kulkarni@dps.edu.in',    '+919811100104', 'DEPARTMENT_HEAD',         true,  false, '2026-04-02 05:10:00+00'),
+('5eed0001-0001-4000-8000-000000000005', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'clerk_rakesh',       'Rakesh',  'Yadav',      'rakesh.yadav@dps.edu.in',       '+919811100105', 'ADMIN_CLERK',             true,  false, '2026-04-03 06:00:00+00'),
+('5eed0001-0001-4000-8000-000000000006', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'compliance_shalini', 'Shalini', 'Mehra',      'shalini.mehra@dps.edu.in',      '+919811100106', 'COMPLIANCE_OFFICER',      true,  true,  '2026-04-03 06:10:00+00'),
+('5eed0001-0001-4000-8000-000000000007', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'finance_geeta',      'Geeta',   'Arora',      'geeta.arora@dps.edu.in',        '+919811100107', 'FINANCE_OFFICER',         true,  true,  '2026-04-03 06:20:00+00'),
 -- DPS: Module 02 admission team (emails referenced by the module 02 seed)
-('5eed0001-0001-4000-8000-000000000008', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'admissions_deepak',  'Deepak',  'Chauhan',    'deepak.admissions@dps.edu.in',  '+919811100108', 'ADMISSION_OFFICER',       true,  false, '2026-07-01 05:00:00+00'),
-('5eed0001-0001-4000-8000-000000000009', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'counselor_meera',    'Meera',   'Pillai',     'meera.counselor@dps.edu.in',    '+919811100109', 'FRONT_OFFICE_COUNSELOR',  true,  false, '2026-07-01 05:05:00+00'),
-('5eed0001-0001-4000-8000-000000000010', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'registrar_suresh',   'Suresh',  'Nambiar',    'suresh.registrar@dps.edu.in',   '+919811100110', 'REGISTRAR',               true,  false, '2026-07-01 05:10:00+00'),
-('5eed0001-0001-4000-8000-000000000011', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'evaluator_kavya',    'Kavya',   'Srinivasan', 'kavya.evaluator@dps.edu.in',    '+919811100111', 'ENTRANCE_EXAM_EVALUATOR', true,  false, '2026-07-01 05:15:00+00'),
-('5eed0001-0001-4000-8000-000000000012', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'cashier_ramesh',     'Ramesh',  'Tiwari',     'ramesh.accounts@dps.edu.in',    '+919811100112', 'FINANCE_CASHIER',         true,  false, '2026-07-01 05:20:00+00'),
-('5eed0001-0001-4000-8000-000000000013', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'marketing_tanya',    'Tanya',   'Sethi',      'tanya.marketing@dps.edu.in',    '+919811100113', 'MARKETING_MANAGER',       true,  false, '2026-07-01 05:25:00+00'),
-('5eed0001-0001-4000-8000-000000000014', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'parent_rohit',       'Rohit',   'Sharma',     'rohit.sharma@gmail.com',        '+919810012301', 'APPLICANT_PARENT',        true,  false, '2026-08-04 05:15:00+00'),
+('5eed0001-0001-4000-8000-000000000008', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'admissions_deepak',  'Deepak',  'Chauhan',    'deepak.admissions@dps.edu.in',  '+919811100108', 'ADMISSION_OFFICER',       true,  false, '2026-07-01 05:00:00+00'),
+('5eed0001-0001-4000-8000-000000000009', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'counselor_meera',    'Meera',   'Pillai',     'meera.counselor@dps.edu.in',    '+919811100109', 'FRONT_OFFICE_COUNSELOR',  true,  false, '2026-07-01 05:05:00+00'),
+('5eed0001-0001-4000-8000-000000000010', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'registrar_suresh',   'Suresh',  'Nambiar',    'suresh.registrar@dps.edu.in',   '+919811100110', 'REGISTRAR',               true,  false, '2026-07-01 05:10:00+00'),
+('5eed0001-0001-4000-8000-000000000011', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'evaluator_kavya',    'Kavya',   'Srinivasan', 'kavya.evaluator@dps.edu.in',    '+919811100111', 'ENTRANCE_EXAM_EVALUATOR', true,  false, '2026-07-01 05:15:00+00'),
+('5eed0001-0001-4000-8000-000000000012', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'cashier_ramesh',     'Ramesh',  'Tiwari',     'ramesh.accounts@dps.edu.in',    '+919811100112', 'FINANCE_CASHIER',         true,  false, '2026-07-01 05:20:00+00'),
+('5eed0001-0001-4000-8000-000000000013', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'marketing_tanya',    'Tanya',   'Sethi',      'tanya.marketing@dps.edu.in',    '+919811100113', 'MARKETING_MANAGER',       true,  false, '2026-07-01 05:25:00+00'),
+('5eed0001-0001-4000-8000-000000000014', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'parent_rohit',       'Rohit',   'Sharma',     'rohit.sharma@gmail.com',        '+919810012301', 'APPLICANT_PARENT',        true,  false, '2026-08-04 05:15:00+00'),
 -- vice principal (admissions): SCHOOL_PRINCIPAL approvals in module 02 (fee waivers, deposits) with the seed password
-('5eed0001-0001-4000-8000-000000000023', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'viceprincipal_kiran', 'Kiran',  'Malhotra',   'kiran.malhotra@dps.edu.in',     '+919811100123', 'PRINCIPAL',               true,  false, '2026-07-01 05:35:00+00'),
+('5eed0001-0001-4000-8000-000000000023', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'viceprincipal_kiran', 'Kiran',  'Malhotra',   'kiran.malhotra@dps.edu.in',     '+919811100123', 'PRINCIPAL',               true,  false, '2026-07-01 05:35:00+00'),
 -- DPS: edge cases
-('5eed0001-0001-4000-8000-000000000015', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'teacher_neeraj',     'Neeraj',  'Bhatia',     'neeraj.bhatia@dps.edu.in',      '+919811100115', 'TEACHER',                 false, false, '2025-06-10 04:30:00+00'),
-('5eed0001-0001-4000-8000-000000000016', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'teacher_farhan',     'Farhan',  'Qureshi',    'farhan.qureshi@dps.edu.in',     '+919811100116', 'TEACHER',                 true,  false, '2026-04-15 04:30:00+00'),
-('5eed0001-0001-4000-8000-000000000017', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-SOUTH', 'principal_sunita',   'Sunita',  'Rawat',      'sunita.rawat@dps.edu.in',       '+919811100117', 'PRINCIPAL',               true,  true,  '2026-04-01 05:00:00+00'),
+('5eed0001-0001-4000-8000-000000000015', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'teacher_neeraj',     'Neeraj',  'Bhatia',     'neeraj.bhatia@dps.edu.in',      '+919811100115', 'TEACHER',                 false, false, '2025-06-10 04:30:00+00'),
+('5eed0001-0001-4000-8000-000000000016', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-NORTH', 'teacher_farhan',     'Farhan',  'Qureshi',    'farhan.qureshi@dps.edu.in',     '+919811100116', 'TEACHER',                 true,  false, '2026-04-15 04:30:00+00'),
+('5eed0001-0001-4000-8000-000000000017', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'DPS-DELHI-SOUTH', 'principal_sunita',   'Sunita',  'Rawat',      'sunita.rawat@dps.edu.in',       '+919811100117', 'PRINCIPAL',               true,  true,  '2026-04-01 05:00:00+00'),
 -- SVKM
 ('5eed0001-0001-4000-8000-000000000018', 'b1eEBc99-9c0b-4ef8-bb6d-6bb9bd380a22', 'SVKM-MUMBAI-MAIN', 'superadmin_mahesh', 'Mahesh',  'Iyer',       'mahesh.iyer@svkm.org',          '+919820011118', 'SUPER_ADMIN',             true,  true,  '2026-03-20 05:00:00+00'),
 ('5eed0001-0001-4000-8000-000000000019', 'b1eEBc99-9c0b-4ef8-bb6d-6bb9bd380a22', 'SVKM-MUMBAI-MAIN', 'principal_vandana', 'Vandana', 'Joshi',      'vandana.joshi@svkm.org',        '+919820011119', 'PRINCIPAL',               true,  false, '2026-03-21 05:00:00+00'),
@@ -217,25 +217,25 @@ SELECT s.session_id, s.user_id, s.tenant_id, encode(sha256(convert_to('session:'
        s.login_at, s.last_at, s.login_at + interval '24 hours', s.revoked, s.login_at, COALESCE(s.revoked_at, s.last_at), 'seed:module01',
        CASE WHEN s.revoked THEN 'sameer.kulkarni@dps.edu.in' END, 0
 FROM (VALUES
-    ('5eed0001-0005-4000-8000-000000000001', '5eed0001-0001-4000-8000-000000000009', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', '10.20.1.15',
+    ('5eed0001-0005-4000-8000-000000000001', '5eed0001-0001-4000-8000-000000000009', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '10.20.1.15',
      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36', 'fp-dps-frontdesk-01',
      now() - interval '2 hours', now() - interval '10 minutes', false, NULL::timestamptz),
-    ('5eed0001-0005-4000-8000-000000000002', '5eed0001-0001-4000-8000-000000000008', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', '10.20.1.22',
+    ('5eed0001-0005-4000-8000-000000000002', '5eed0001-0001-4000-8000-000000000008', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '10.20.1.22',
      'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15', 'fp-dps-admissions-mbp',
      now() - interval '3 hours', now() - interval '25 minutes', false, NULL),
-    ('5eed0001-0005-4000-8000-000000000003', 'u2222222-2222-2222-2222-222222222222', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', '10.20.1.10',
+    ('5eed0001-0005-4000-8000-000000000003', 'u2222222-2222-2222-2222-222222222222', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '10.20.1.10',
      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edg/129.0 Safari/537.36', 'fp-dps-principal-office',
      now() - interval '1 hour', now() - interval '5 minutes', false, NULL),
-    ('5eed0001-0005-4000-8000-000000000004', '5eed0001-0001-4000-8000-000000000014', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', '49.36.112.87',
+    ('5eed0001-0005-4000-8000-000000000004', '5eed0001-0001-4000-8000-000000000014', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '49.36.112.87',
      'KVS-ParentApp/3.4.1 (Android 14; Samsung SM-A546E)', 'fp-android-7f3a91c2',
      now() - interval '40 minutes', now() - interval '35 minutes', false, NULL),
     ('5eed0001-0005-4000-8000-000000000005', '5eed0001-0001-4000-8000-000000000021', '5eed0001-0000-4000-8000-000000000003', '10.30.4.21',
      'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:131.0) Gecko/20100101 Firefox/131.0', 'fp-gmet-admin-thinkpad',
      now() - interval '4 hours', now() - interval '1 hour', false, NULL),
-    ('5eed0001-0005-4000-8000-000000000006', '5eed0001-0001-4000-8000-000000000015', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', '10.20.2.41',
+    ('5eed0001-0005-4000-8000-000000000006', '5eed0001-0001-4000-8000-000000000015', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '10.20.2.41',
      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36', 'fp-dps-staffroom-07',
      TIMESTAMPTZ '2026-09-30 03:15:00+00', TIMESTAMPTZ '2026-09-30 09:40:00+00', true, TIMESTAMPTZ '2026-09-30 12:00:00+00'),
-    ('5eed0001-0005-4000-8000-000000000007', '5eed0001-0001-4000-8000-000000000015', 'a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', '106.215.88.14',
+    ('5eed0001-0005-4000-8000-000000000007', '5eed0001-0001-4000-8000-000000000015', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '106.215.88.14',
      'KVS-StaffApp/2.9.0 (iOS 17.6; iPhone 13)', 'fp-ios-0c55e218',
      TIMESTAMPTZ '2026-09-30 10:05:00+00', TIMESTAMPTZ '2026-09-30 11:50:00+00', true, TIMESTAMPTZ '2026-09-30 12:00:00+00')
 ) AS s(session_id, user_id, tenant_id, ip, ua, fp, login_at, last_at, revoked, revoked_at);
@@ -246,13 +246,13 @@ FROM (VALUES
 INSERT INTO api_tokens (tenant_id, user_id, token_name, token_hash, scopes, rate_limit_rpm, expires_at, is_active,
                         created_at, updated_at, created_by, updated_by, version)
 VALUES
-('a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', '5eed0001-0001-4000-8000-000000000005', 'Tally ERP Fee Ledger Sync',
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '5eed0001-0001-4000-8000-000000000005', 'Tally ERP Fee Ledger Sync',
  encode(sha256(convert_to('kvs_live_tally_dps_8f2c1e9a4b7d', 'UTF8')), 'hex'), 'read:fees,write:fee_ledger', 600,
  now() + interval '60 days', true, now() - interval '30 days', now() - interval '30 days', 'seed:module01', NULL, 0),
-('a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', '5eed0001-0001-4000-8000-000000000005', 'Library RFID Gate Reader',
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '5eed0001-0001-4000-8000-000000000005', 'Library RFID Gate Reader',
  encode(sha256(convert_to('kvs_live_rfid_dps_3a6e0d2f9c18', 'UTF8')), 'hex'), 'read:students,write:library_issues', 60,
  now() - interval '5 days', false, now() - interval '95 days', now() - interval '5 days', 'seed:module01', 'rakesh.yadav@dps.edu.in', 0),
-('a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', '5eed0001-0001-4000-8000-000000000008', 'Admissions Website Lead Form',
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '5eed0001-0001-4000-8000-000000000008', 'Admissions Website Lead Form',
  encode(sha256(convert_to('kvs_live_webform_dps_c47b19e2a05f', 'UTF8')), 'hex'), 'write:admission_enquiries', 300,
  now() + interval '25 days', true, now() - interval '5 days', now() - interval '5 days', 'seed:module01', NULL, 0),
 ('b1eEBc99-9c0b-4ef8-bb6d-6bb9bd380a22', '5eed0001-0001-4000-8000-000000000018', 'Transport GPS Tracker',
@@ -282,15 +282,15 @@ INSERT INTO role_delegations (tenant_id, delegator_user_id, delegatee_user_id, r
 SELECT d.tenant_id, d.delegator, d.delegatee, r.id, d.role_name, d.start_time, d.end_time, d.status, d.reason,
        d.created_at, d.updated_at, 'seed:module01', d.updated_by, 0
 FROM (VALUES
-    ('a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', '5eed0001-0001-4000-8000-000000000004', 'u3333333-3333-3333-3333-333333333333', 'DEPARTMENT_HEAD',
+    ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '5eed0001-0001-4000-8000-000000000004', 'u3333333-3333-3333-3333-333333333333', 'DEPARTMENT_HEAD',
      now() - interval '1 day', now() + interval '6 days', 'ACTIVE',
      'Covering Science department duties while Dr. Kulkarni attends CBSE evaluator training in Chandigarh.',
      now() - interval '2 days', now() - interval '2 days', NULL),
-    ('a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', '5eed0001-0001-4000-8000-000000000008', '5eed0001-0001-4000-8000-000000000009', 'ADMISSION_OFFICER',
+    ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '5eed0001-0001-4000-8000-000000000008', '5eed0001-0001-4000-8000-000000000009', 'ADMISSION_OFFICER',
      now() + interval '3 days', now() + interval '10 days', 'ACTIVE',
      'Admissions officer on leave during Diwali week; counselor approves exam schedules in the interim.',
      now() - interval '1 day', now() - interval '1 day', NULL),
-    ('a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'u2222222-2222-2222-2222-222222222222', '5eed0001-0001-4000-8000-000000000017', 'PRINCIPAL',
+    ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'u2222222-2222-2222-2222-222222222222', '5eed0001-0001-4000-8000-000000000017', 'PRINCIPAL',
      TIMESTAMPTZ '2026-08-10 02:30:00+00', TIMESTAMPTZ '2026-08-24 12:30:00+00', 'REVOKED',
      'Annual leave cover for the North campus; revoked early when the principal returned on 18 Aug.',
      TIMESTAMPTZ '2026-08-08 09:00:00+00', TIMESTAMPTZ '2026-08-18 04:00:00+00', 'anita.principal@dps.edu.in')
@@ -303,11 +303,11 @@ JOIN roles r ON r.name = d.role_name;
 INSERT INTO privacy_anonymization_logs (tenant_id, user_id, profile_type, request_type, anonymized_fields, reason, status, executed_by,
                                         executed_at, created_at, updated_at, created_by, updated_by, version)
 VALUES
-('a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', '5eed0001-0001-4000-8000-000000000015', 'STAFF', 'ANONYMIZATION',
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '5eed0001-0001-4000-8000-000000000015', 'STAFF', 'ANONYMIZATION',
  'phone,address,personal_email,bank_account_number,emergency_contact',
  'DPDP erasure request from former teacher after full and final settlement (HR ticket HR-2026-0918).', 'COMPLETED',
  'shalini.mehra@dps.edu.in', '2026-10-01 06:30:00+00', '2026-10-01 06:30:00+00', '2026-10-01 06:30:00+00', 'seed:module01', NULL, 0),
-('a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'STU-2019-0457', 'STUDENT', 'ANONYMIZATION',
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'STU-2019-0457', 'STUDENT', 'ANONYMIZATION',
  'first_name,last_name,email,phone,address,guardian_details,date_of_birth',
  'Alumni record past the 5-year retention window (batch of 2019); academic results kept in aggregate form.', 'COMPLETED',
  'shalini.mehra@dps.edu.in', '2026-09-15 08:00:00+00', '2026-09-15 08:00:00+00', '2026-09-15 08:00:00+00', 'seed:module01', NULL, 0),
@@ -318,9 +318,9 @@ VALUES
 
 INSERT INTO field_encryption_policies (tenant_id, entity_name, encrypted_fields, algorithm, is_enforced, created_at, updated_at, created_by, updated_by, version)
 VALUES
-('a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'StudentHealthRecord', 'blood_group,allergies,medical_conditions,emergency_medication', 'AES-256-GCM', true,
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'StudentHealthRecord', 'blood_group,allergies,medical_conditions,emergency_medication', 'AES-256-GCM', true,
  '2026-05-10 05:00:00+00', '2026-05-10 05:00:00+00', 'seed:module01', NULL, 0),
-('a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'GuardianProfile', 'aadhaar_number,pan_number,annual_income', 'AES-256-GCM', true,
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'GuardianProfile', 'aadhaar_number,pan_number,annual_income', 'AES-256-GCM', true,
  '2026-05-10 05:05:00+00', '2026-05-10 05:05:00+00', 'seed:module01', NULL, 0),
 ('b1eEBc99-9c0b-4ef8-bb6d-6bb9bd380a22', 'StaffPayroll', 'bank_account_number,ifsc_code,gross_salary,pf_number', 'AES-256-GCM', true,
  '2026-05-22 06:00:00+00', '2026-05-22 06:00:00+00', 'seed:module01', NULL, 0),
@@ -333,9 +333,9 @@ VALUES
 INSERT INTO security_alert_rules (tenant_id, rule_name, condition_pattern, threshold_attempts, severity, notification_channel, is_enabled,
                                   created_at, updated_at, created_by, updated_by, version)
 VALUES
-('a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Repeated failed logins on staff portal', 'EXCESSIVE_FAILED_LOGINS', 5, 'HIGH',     'EMAIL',   true,
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Repeated failed logins on staff portal', 'EXCESSIVE_FAILED_LOGINS', 5, 'HIGH',     'EMAIL',   true,
  '2026-05-12 05:00:00+00', '2026-05-12 05:00:00+00', 'seed:module01', NULL, 0),
-('a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Admin login from an unrecognised location', 'UNKNOWN_IP_LOCATION', 1, 'CRITICAL', 'SMS',     true,
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Admin login from an unrecognised location', 'UNKNOWN_IP_LOCATION', 1, 'CRITICAL', 'SMS',     true,
  '2026-05-12 05:05:00+00', '2026-05-12 05:05:00+00', 'seed:module01', NULL, 0),
 ('b1eEBc99-9c0b-4ef8-bb6d-6bb9bd380a22', 'Brute-force attempts on the parent app',    'EXCESSIVE_FAILED_LOGINS', 10, 'MEDIUM',  'WEBHOOK', true,
  '2026-05-25 06:00:00+00', '2026-05-25 06:00:00+00', 'seed:module01', NULL, 0),
@@ -348,7 +348,7 @@ VALUES
 INSERT INTO disaster_recovery_backups (tenant_id, snapshot_id, backup_type, storage_provider, cloud_bucket, encryption_algorithm, size_bytes,
                                        backup_timestamp, status, created_at, updated_at, created_by, updated_by, version)
 VALUES
-('a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'snap-dps-inc-' || to_char(now() - interval '1 day', 'YYYYMMDD'), 'INCREMENTAL', 'AWS_S3',
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'snap-dps-inc-' || to_char(now() - interval '1 day', 'YYYYMMDD'), 'INCREMENTAL', 'AWS_S3',
  's3://schoolerp-dps-backups/incremental/', 'AES-256-GCM', 187695104, date_trunc('day', now() - interval '1 day') + interval '20 hours 30 minutes', 'COMPLETED',
  now() - interval '1 day', now() - interval '1 day', 'seed:module01', NULL, 0),
 ('b1eEBc99-9c0b-4ef8-bb6d-6bb9bd380a22', 'snap-svkm-full-20261012', 'FULL', 'AWS_S3',
@@ -398,7 +398,7 @@ FROM (VALUES
 -- ---------------------------------------------------------------------------------------------------
 INSERT INTO tenant_school_profiles (tenant_id, school_name, campus_name, school_email, school_phone, school_reference, website, address,
                                     created_at, updated_at, created_by, updated_by, version)
-VALUES ('a0eEBc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Oakridge Academy', 'Main campus', 'office@oakridge.ac.uk', '+44 1865 555 100', 'OA-00482',
+VALUES ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Oakridge Academy', 'Main campus', 'office@oakridge.ac.uk', '+44 1865 555 100', 'OA-00482',
         'www.oakridge.ac.uk', '12 Oakridge Road, Oxford, OX2 7AA, United Kingdom', now(), now(), 'seed:module01', NULL, 0)
 ON CONFLICT (tenant_id) DO NOTHING;
 

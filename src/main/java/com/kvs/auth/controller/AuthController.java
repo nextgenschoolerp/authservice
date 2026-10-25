@@ -128,6 +128,19 @@ public class AuthController {
     }
 
     /**
+     * Renews the signed-in user's token while they are active (sliding session). The current bearer token must still be valid.
+     *
+     * @param authorization the bearer token of the session being renewed
+     * @return 200 OK envelope with a fresh access token
+     */
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization) {
+        String token = authorization != null && authorization.startsWith("Bearer ") ? authorization.substring(7) : null;
+        return ResponseEntity.ok(ApiResponse.success(authService.refreshAccessToken(token)));
+    }
+
+    /**
      * Request a time-limited single-use password reset token (US-01001).
      *
      * @param request identifier (username or email)

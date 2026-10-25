@@ -12,6 +12,7 @@ import com.kvs.core.util.SecurityUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +56,10 @@ public class AuthService {
 
     @Autowired
     private JwtTokenService jwtTokenService;
+
+    // Longest a signed-in session may run in total, however active the user is (matches the session policy default)
+    @Value("${session.max-duration-minutes:480}")
+    private int maxSessionMinutes;
 
     @Autowired(required = false)
     private HttpServletRequest httpRequest;
@@ -315,6 +320,59 @@ public class AuthService {
                 .mfaRequired(user.isMfaEnabled())
                 .message("User profile retrieved successfully")
                 .build();
+    }
+
+    /**
+     * Sliding session: issues a fresh access token while the user is active, so they are not signed out when the
+     * 30-minute token runs out. The session is the login record in user_sessions: it must still be open (not revoked
+     * or past its expiry), and it may run for at most {@code session.max-duration-minutes} from sign-in in total.
+     * A forced password change must be finished first.
+     */
+    @Transactional
+    public AuthResponse refreshAccessToken(String bearerToken) {
+        String username;
+        try {
+            jwtTokenService.validateToken(bearerToken); // signature and expiry
+            username = jwtTokenService.extractUsername(bearerToken);
+        } catch (RuntimeException e) {
+            throw new UnauthorizedException("Your session has expired. Please sign in again.");
+        }
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UnauthorizedException("Your session has expired. Please sign in again."));
+        if (!user.isActive()) {
+            throw new UnauthorizedException("This account is no longer active.");
+        }
+        if (userCredentialRepository.findByUserId(user.getUserId()).map(UserCredential::isMustChangePassword).orElse(false)) {
+            throw new UnauthorizedException("Change your password to continue.");
+        }
+
+        Instant now = Instant.now();
+        UserSession session = userSessionRepository.findByUserIdAndRevokedFalse(user.getUserId()).stream()
+                .max(Comparator.comparing(UserSession::getLoginAt))
+                .filter(s -> s.getExpiresAt() == null || s.getExpiresAt().isAfter(now))
+                .orElseThrow(() -> new UnauthorizedException("Your session has ended. Please sign in again."));
+        if (session.getLoginAt().plus(maxSessionMinutes, ChronoUnit.MINUTES).isBefore(now)) {
+            throw new UnauthorizedException("Your session has reached its maximum length. Please sign in again.");
+        }
+        session.setLastActivityAt(now);
+        userSessionRepository.save(session);
+
+        AuthResponse profile = getCurrentUserProfile(user.getUsername());
+        Map<String, Object> renewedClaims = new HashMap<>();
+        renewedClaims.put("roles", profile.getRoles());
+        renewedClaims.put("userId", user.getUserId());
+        if (user.getEmail() != null) {
+            renewedClaims.put("email", user.getEmail());
+        }
+        renewedClaims.put("tenantId", user.getTenantId());
+        renewedClaims.put("userType", user.getUserType());
+        renewedClaims.put("mustChangePassword", false);
+
+        profile.setAccessToken(jwtTokenService.generateToken(user.getUsername(), renewedClaims));
+        profile.setTokenType("Bearer");
+        profile.setExpiresIn(1800L); // matches the token lifetime set in JwtTokenService
+        return profile;
     }
 
     /**

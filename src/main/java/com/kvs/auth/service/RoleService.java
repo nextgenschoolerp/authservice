@@ -7,6 +7,7 @@ import com.kvs.auth.entity.RolePermission;
 import com.kvs.auth.repo.AuditLogRepository;
 import com.kvs.auth.repo.RolePermissionRepository;
 import com.kvs.auth.repo.RoleRepository;
+import com.kvs.core.exception.BadRequestException;
 import com.kvs.core.exception.ConflictException;
 import com.kvs.core.exception.ResourceNotFoundException;
 import com.kvs.core.util.SecurityUtils;
@@ -17,8 +18,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -30,6 +35,8 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class RoleService {
+
+    private static final Pattern SCREEN_NAME = Pattern.compile("[A-Z][A-Z0-9_]{1,99}");
 
     @Autowired
     private RoleRepository roleRepository;
@@ -100,36 +107,61 @@ public class RoleService {
         return mapToRoleResponse(savedRole);
     }
 
+    /**
+     * Saves the listed screens of a role. A screen with every box unticked is removed from the role; screens not listed
+     * are left as they are. Write, Delete and Export need Read. Returns the role's permissions after the change.
+     */
     @Transactional
     public List<RolePermissionResponse> assignPermissions(Long roleId, List<RolePermissionRequest> requests) {
         log.info("Assigning screen permissions to roleId: {}", roleId);
         Role role = roleRepository.findById(roleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "id", roleId));
 
-        List<RolePermissionResponse> responses = new ArrayList<>();
-
+        Set<String> seen = new HashSet<>();
         for (RolePermissionRequest permReq : requests) {
-            RolePermission perm = rolePermissionRepository.findByRoleIdAndScreenName(roleId, permReq.getScreenName())
-                    .orElseGet(() -> {
-                        RolePermission newPerm = new RolePermission();
-                        newPerm.setRole(role);
-                        newPerm.setScreenName(permReq.getScreenName());
-                        return newPerm;
-                    });
+            String screen = permReq.getScreenName().trim();
+            if (!SCREEN_NAME.matcher(screen).matches()) {
+                throw new BadRequestException("Screen name " + screen + " is not valid: use capital letters, digits and underscores, for example STUDENT_PROFILE");
+            }
+            if (!seen.add(screen)) {
+                throw new BadRequestException("Screen " + screen + " is listed more than once");
+            }
+            if (!permReq.isCanRead() && (permReq.isCanWrite() || permReq.isCanDelete() || permReq.isCanExport())) {
+                throw new BadRequestException("Screen " + screen + ": Write, Delete and Export need Read");
+            }
+            permReq.setScreenName(screen);
+        }
 
-            perm.setCanRead(permReq.isCanRead());
+        int saved = 0;
+        int removed = 0;
+        for (RolePermissionRequest permReq : requests) {
+            Optional<RolePermission> existing = rolePermissionRepository.findByRoleIdAndScreenName(roleId, permReq.getScreenName());
+            if (!permReq.isCanRead()) {
+                if (existing.isPresent()) {
+                    rolePermissionRepository.delete(existing.get());
+                    removed++;
+                }
+                continue;
+            }
+            RolePermission perm = existing.orElseGet(() -> {
+                RolePermission newPerm = new RolePermission();
+                newPerm.setRole(role);
+                newPerm.setScreenName(permReq.getScreenName());
+                return newPerm;
+            });
+            perm.setCanRead(true);
             perm.setCanWrite(permReq.isCanWrite());
             perm.setCanDelete(permReq.isCanDelete());
             perm.setCanExport(permReq.isCanExport());
-
-            RolePermission saved = rolePermissionRepository.save(perm);
-            responses.add(mapToPermissionResponse(saved));
+            rolePermissionRepository.save(perm);
+            saved++;
         }
+        rolePermissionRepository.flush();
 
         logAudit("ASSIGN_SCREEN_PERMISSIONS", "role:" + roleId, "SUCCESS",
-                "Assigned " + requests.size() + " screen permissions to role " + role.getName());
+                "Saved " + saved + " and removed " + removed + " screen permissions of role " + role.getName());
 
-        return responses;
+        return getPermissions(roleId);
     }
 
     public List<RolePermissionResponse> getPermissions(Long roleId) {
@@ -138,6 +170,7 @@ public class RoleService {
             throw new ResourceNotFoundException("Role", "id", roleId);
         }
         return rolePermissionRepository.findByRoleId(roleId).stream()
+                .sorted(Comparator.comparing(RolePermission::getScreenName))
                 .map(this::mapToPermissionResponse)
                 .collect(Collectors.toList());
     }

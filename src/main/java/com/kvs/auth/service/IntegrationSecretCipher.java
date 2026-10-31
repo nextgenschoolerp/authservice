@@ -1,0 +1,70 @@
+package com.kvs.auth.service;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.util.Base64;
+
+/**
+ * Encrypts integration secrets (SMTP passwords, SMS API keys, WhatsApp tokens) with AES-256-GCM before they are stored.
+ * The key comes from {@code kvs.integrations.secret-key} (env KVS_INTEGRATIONS_KEY: 32 bytes, base64). Without it a fixed
+ * development key is used and a warning is logged; set the variable in every shared or production environment.
+ */
+@Component
+@Slf4j
+public class IntegrationSecretCipher {
+
+    private static final int IV_BYTES = 12;
+    private static final int TAG_BITS = 128;
+    private final SecretKeySpec key;
+    private final SecureRandom random = new SecureRandom();
+
+    public IntegrationSecretCipher(@Value("${kvs.integrations.secret-key:}") String configured) {
+        byte[] raw;
+        if (configured == null || configured.isBlank()) {
+            log.warn("kvs.integrations.secret-key (KVS_INTEGRATIONS_KEY) is not set: integration secrets use the development key. Set it outside local development.");
+            raw = sha256("schoolerp-dev-integrations-key");
+        } else {
+            raw = Base64.getDecoder().decode(configured.trim());
+            if (raw.length != 32) throw new IllegalStateException("kvs.integrations.secret-key must be 32 bytes, base64 encoded");
+        }
+        this.key = new SecretKeySpec(raw, "AES");
+    }
+
+    public String encrypt(String plain) {
+        try {
+            byte[] iv = new byte[IV_BYTES];
+            random.nextBytes(iv);
+            Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
+            c.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(TAG_BITS, iv));
+            byte[] ct = c.doFinal(plain.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(ByteBuffer.allocate(iv.length + ct.length).put(iv).put(ct).array());
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not encrypt the integration secret", e);
+        }
+    }
+
+    public String decrypt(String stored) {
+        try {
+            byte[] all = Base64.getDecoder().decode(stored);
+            Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
+            c.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(TAG_BITS, all, 0, IV_BYTES));
+            return new String(c.doFinal(all, IV_BYTES, all.length - IV_BYTES), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new IllegalStateException("The saved secret can no longer be read (was the encryption key changed?). Enter it again.", e);
+        }
+    }
+
+    private static byte[] sha256(String s) {
+        try { return MessageDigest.getInstance("SHA-256").digest(s.getBytes(StandardCharsets.UTF_8)); }
+        catch (Exception e) { throw new IllegalStateException(e); }
+    }
+}

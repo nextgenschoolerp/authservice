@@ -48,6 +48,8 @@ dependencies {
     implementation 'com.kvs.core:ms-core:1.0.0-SNAPSHOT'
     implementation 'org.apache.poi:poi-ooxml:5.2.5'
 
+    // on the runtime classpath through ms-core; needed here for Settings → Integrations test emails
+    compileOnly 'org.springframework.boot:spring-boot-starter-mail'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 

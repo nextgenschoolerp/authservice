@@ -22,11 +22,14 @@ public class WebSecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final InternalServiceFilter internalServiceFilter;
 
     public WebSecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
-                             JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
+                             JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+                             @org.springframework.beans.factory.annotation.Value("${kvs.internal.key:schoolerp-dev-internal-key}") String internalKey) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+        this.internalServiceFilter = new InternalServiceFilter(internalKey);
         log.info("WebSecurityConfig initialized");
     }
 
@@ -53,7 +56,8 @@ public class WebSecurityConfig {
                                 "/swagger-ui.html")
                         .permitAll()
                         .anyRequest().authenticated())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(internalServiceFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }

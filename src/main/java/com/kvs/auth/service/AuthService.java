@@ -260,6 +260,9 @@ public class AuthService {
             claims.put("email", user.getEmail());
         }
         claims.put("tenantId", user.getTenantId());
+        if (user.getBranchId() != null) {
+            claims.put("branchId", user.getBranchId());
+        }
         claims.put("userType", user.getUserType());
         claims.put("mustChangePassword", mustChangePassword);
 
@@ -366,6 +369,9 @@ public class AuthService {
             renewedClaims.put("email", user.getEmail());
         }
         renewedClaims.put("tenantId", user.getTenantId());
+        if (user.getBranchId() != null) {
+            renewedClaims.put("branchId", user.getBranchId());
+        }
         renewedClaims.put("userType", user.getUserType());
         renewedClaims.put("mustChangePassword", false);
 

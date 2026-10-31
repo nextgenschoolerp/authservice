@@ -57,3 +57,11 @@ logging:
     com.kvs: debug
     com.kvs.core.logging.RequestAndRepositoryLoggingAspect: debug
     org.springframework.security: debug
+
+kvs:
+  integrations:
+    # 32 random bytes, base64: encrypts the saved email / SMS / WhatsApp secrets (Settings → Integrations)
+    secret-key: ${KVS_INTEGRATIONS_KEY:}
+  internal:
+    # shared with admissionservice / financeservice: lets a scheduled job send email without a signed-in user
+    key: ${KVS_INTERNAL_KEY:schoolerp-dev-internal-key}

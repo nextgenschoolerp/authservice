@@ -40,7 +40,8 @@ public class TenantAccessGuard {
 
     /** True when the caller may act on the given tenant. */
     public boolean canAccessTenant(String tenantId) {
-        return isSuperAdmin() || (tenantId != null && currentTenantId()
+        // a trusted internal service (X-Internal-Key on /integrations/deliver) acts for the school named in the path
+        return isSuperAdmin() || SecurityUtils.getCurrentUserRoles().contains("ROLE_INTERNAL_SERVICE") || (tenantId != null && currentTenantId()
                 .map(tenantId::equalsIgnoreCase)
                 .orElse(false));
     }
